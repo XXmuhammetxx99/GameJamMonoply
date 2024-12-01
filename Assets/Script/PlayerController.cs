@@ -1,10 +1,6 @@
 using System.Collections;
-using TMPro;
 using UnityEngine;
 using DG.Tweening;
-using System.Xml.Schema;
-using NUnit.Framework;
-using Unity.VisualScripting;
 
 public class PlayerController : MonoBehaviour
 {
@@ -15,16 +11,23 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject pressText;
     [SerializeField] private Animator dieAnimator;
 
-    private readonly Vector3[] directions = new Vector3[] { Vector3.left, Vector3.forward, Vector3.right, Vector3.back};
+    private readonly Vector3[] directions = new Vector3[] {Vector3.left, Vector3.forward, Vector3.right, Vector3.back};
 
-    public int _dicdCounter = 0;
-    public int _directionCounter = 0;
+    private int _dicdCounter = 0;
+    private int _directionCounter = 0;
     private bool _canThrow = true;
+    private bool _isAnimPlaying = false;
+
+    private Camera cam;
+
+    private void Start()
+    {
+        cam = FindFirstObjectByType<Camera>();
+    }
 
     void Update()
     {
-        transform.LookAt(Camera.main.transform.position);
-        transform.rotation = new Quaternion(0, transform.rotation.y, transform.rotation.z, 0);
+        Look();
         if (_canThrow && _dicdCounter < riggedDice.Length)
         {
             TakePlayerInput();
@@ -42,6 +45,20 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+    private void Look()
+    {
+        switch (_isAnimPlaying)
+        {
+            case true:
+                transform.LookAt(cam.transform.position);
+                transform.rotation = new Quaternion(0, transform.rotation.y, transform.rotation.z, 0);
+                break;
+            default:
+                transform.eulerAngles = new Vector3(90f, 0, 0);
+                break;
+        }
+    }
+
     private void TakePlayerInput()
     { 
         pressText.SetActive(true);
@@ -51,6 +68,7 @@ public class PlayerController : MonoBehaviour
             ThrowDice();
         }
     }
+
     private void ThrowDice()
     {
         //play die animation
@@ -61,6 +79,7 @@ public class PlayerController : MonoBehaviour
         pressText.SetActive(false);
         StartCoroutine(Step());
     }
+
     IEnumerator Step()
     {
         yield return new WaitForSeconds(1.5f);
@@ -71,6 +90,28 @@ public class PlayerController : MonoBehaviour
         }
         _dicdCounter++;
         //play sad animation and update ui
+        StartCoroutine(PlayAnimation());
+    }
+
+    IEnumerator PlayAnimation()
+    {
+        //move camera
+        cam.transform.DOMove(gameObject.transform.position + new Vector3(0, 0, -2.5f), 1);
+        cam.transform.DORotate(Vector3.zero, 1);
+        _isAnimPlaying = true;
+        yield return new WaitForSeconds(1);
+        //gameObject.GetComponent<Animator>().SetInteger("Track", _dicdCounter);
+        //gameObject.GetComponent<Animator>().SetTrigger("Play");
+        StartCoroutine(EndAnimation());
+    }
+
+    IEnumerator EndAnimation()
+    {
+        //move camera back
+        cam.transform.DOMove(new Vector3(0, 12, 0), 1);
+        cam.transform.DORotate(new Vector3(90, 0, 0), 1);
+        yield return new WaitForSeconds(1);
         _canThrow = true;
+        _isAnimPlaying = false;
     }
 }
