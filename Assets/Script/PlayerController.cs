@@ -16,7 +16,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private readonly AudioClip[] dialogue;
     private readonly Vector3[] directions = new Vector3[] {Vector3.left, Vector3.forward, Vector3.right, Vector3.back};
 
-    private int _dicdCounter = 0;
+    private int _diceCounter = 0;
     private int _directionCounter = 0;
     private int _dialgoueCounter = 0;
     private bool _canThrow = true;
@@ -34,7 +34,7 @@ public class PlayerController : MonoBehaviour
         //Look();
         transform.LookAt(cam.transform.position);
         //transform.rotation = new Quaternion(0, transform.rotation.y, transform.rotation.z, 0);
-        if (_canThrow && _dicdCounter < riggedDice.Length)
+        if (_canThrow && _diceCounter < riggedDice.Length)
         {
             TakePlayerInput();
         }
@@ -84,7 +84,7 @@ public class PlayerController : MonoBehaviour
     private void ThrowDice()
     {
         //play die animation
-        dieAnimator.SetInteger("die", riggedDice[_dicdCounter]);
+        dieAnimator.SetInteger("die", riggedDice[_diceCounter]);
         dieAnimator.SetTrigger("shoot");
         Debug.Log("Dice thrown");
         _canThrow = false;
@@ -96,12 +96,12 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitForSeconds(1.5f);
         playerAnimation.SetTrigger("Move");
-        for (int i = 0; i < riggedDice[_dicdCounter]; i++)
+        for (int i = 0; i < riggedDice[_diceCounter]; i++)
         { 
             transform.DOMove(gameObject.transform.position + (directions[2] * stepDistance), stepTime);
             yield return new WaitForSeconds(stepDelay + stepTime);
         }
-        _dicdCounter++;
+        _diceCounter++;
         //play sad animation and update ui
         playerAnimation.SetTrigger("Stop");
         StartCoroutine(PlayAnimation());
@@ -114,8 +114,8 @@ public class PlayerController : MonoBehaviour
         //cam.transform.DORotate(Vector3.zero, 1);
         _isAnimPlaying = true;
         yield return new WaitForSeconds(1);
-        //gameObject.GetComponent<Animator>().SetInteger("Track", _dicdCounter);
-        //gameObject.GetComponent<Animator>().SetTrigger("Play");
+        playerAnimation.SetInteger("Track", _diceCounter);
+        playerAnimation.SetTrigger("Play");
         StartCoroutine(EndAnimation());
     }
 
