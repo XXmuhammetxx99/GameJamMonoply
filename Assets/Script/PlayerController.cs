@@ -10,25 +10,35 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float stepDistance;
     [SerializeField] private GameObject pressText;
     [SerializeField] private Animator dieAnimator;
-    [SerializeField] private Animator playerAnimation;
+    public Animator playerAnimation;
     [SerializeField] private AudioSource audioSource;
 
-    [SerializeField] private readonly AudioClip[] dialogue;
+    [SerializeField] private AudioClip[] dialogue;
     private readonly Vector3[] directions = new Vector3[] {Vector3.left, Vector3.forward, Vector3.right, Vector3.back};
 
     private int _diceCounter = 0;
     private int _directionCounter = 0;
     private int _dialgoueCounter = 0;
-    private bool _canThrow = true;
-    private bool _isAnimPlaying = false;
+    public bool _canThrow = false;
+    public bool _isAnimPlaying = false;
 
     private Camera cam;
 
     private void Start()
     {
         cam = FindFirstObjectByType<Camera>();
+        StartCoroutine(PlayConsecituveSounds());
     }
-
+    IEnumerator PlayConsecituveSounds()
+    {
+        PlayClip();
+        yield return new WaitForSeconds(5f);
+        PlayClip();
+        yield return new WaitForSeconds(2f);
+        PlayClip();
+        _canThrow = true;
+        pressText.SetActive(true);
+    }
     void Update()
     {
         //Look();
@@ -52,11 +62,18 @@ public class PlayerController : MonoBehaviour
         }
         else if (collision.CompareTag("Dialogue"))
         {
-            audioSource.clip = (dialogue[_dialgoueCounter]);
-            audioSource.Play();
-            _dialgoueCounter++;
+            PlayClip();
         }
-    }/*
+    }
+    
+    private void PlayClip()
+    {
+        if (_dialgoueCounter >= dialogue.Length) return;
+        audioSource.clip = (dialogue[_dialgoueCounter]);
+        audioSource.Play();
+        _dialgoueCounter++;
+    }
+    /*
     private void Look()
     {
         switch (_isAnimPlaying)
@@ -74,7 +91,6 @@ public class PlayerController : MonoBehaviour
     private void TakePlayerInput()
     { 
         pressText.SetActive(true);
-        Debug.Log("can throw");
         if (Input.GetButtonDown("Jump"))
         {
             ThrowDice();
@@ -95,6 +111,7 @@ public class PlayerController : MonoBehaviour
     IEnumerator Step()
     {
         yield return new WaitForSeconds(1.5f);
+        PlayClip();
         playerAnimation.SetTrigger("Move");
         for (int i = 0; i < riggedDice[_diceCounter]; i++)
         { 
@@ -113,19 +130,11 @@ public class PlayerController : MonoBehaviour
         //cam.transform.DOMove(gameObject.transform.position + new Vector3(0, 0, -2.5f), 1);
         //cam.transform.DORotate(Vector3.zero, 1);
         _isAnimPlaying = true;
-        yield return new WaitForSeconds(1);
-        playerAnimation.SetInteger("Track", _diceCounter);
-        playerAnimation.SetTrigger("Play");
-        StartCoroutine(EndAnimation());
-    }
-
-    IEnumerator EndAnimation()
-    {
-        //move camera back
-        //cam.transform.DOMove(new Vector3(0, 12, 0), 1);
-        //cam.transform.DORotate(new Vector3(90, 0, 0), 1);
-        yield return new WaitForSeconds(1);
-        _canThrow = true;
-        _isAnimPlaying = false;
+        PlayClip();
+        yield return new WaitForSeconds(2);
+        playerAnimation.SetInteger("Sequence", _diceCounter);
+        playerAnimation.SetTrigger("Animation");
+        yield return new WaitForSeconds(3f);
+        PlayClip();
     }
 }

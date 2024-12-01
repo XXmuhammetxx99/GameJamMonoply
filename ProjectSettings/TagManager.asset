@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Corner
+  - Dialogue
   layers:
   - Default
   - TransparentFX
